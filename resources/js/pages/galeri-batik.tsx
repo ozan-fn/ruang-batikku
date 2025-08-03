@@ -1,30 +1,217 @@
 import GuestLayout from '@/layouts/guest-layout';
 
+import motifTujuhRupa from '@/assets/batik/batik-tujuh-rupa-min.jpg';
+import motifGentongan from '@/assets/batik/genthongan-madura.jpg';
+import motifKawung from '@/assets/batik/kawung.webp';
+import motifKeraton from '@/assets/batik/keraton.png';
+import motifMegaMendung from '@/assets/batik/mega-mendung.png';
+import motifParang from '@/assets/batik/Motif-Batik-Parang-Kusumo-3.jpg.webp';
+import motifSimbut from '@/assets/batik/Motif-batik-simbut.png';
+import motifPringSedapur from '@/assets/batik/pring-sedapur.jpg';
+import motifPriyangan from '@/assets/batik/priyangan.jpg';
+import motifSogan from '@/assets/batik/sogan.jpg';
+import { CardBody, CardContainer, CardItem } from '@/components/ui/3d-card';
+import { AnimatePresence, motion } from 'motion/react';
+import { useState } from 'react';
+
+export interface MotifBatik {
+    id: number;
+    nama: string;
+    asal: string;
+    deskripsi: string;
+    sumberFoto: string;
+}
+
+export const dataMotifBatik: MotifBatik[] = [
+    {
+        id: 1,
+        nama: 'Motif Batik Tujuh Rupa',
+        asal: 'Pekalongan',
+        deskripsi:
+            'Sangat kental dengan nuansa alam, menampilkan berbagai bentuk motif dengan gambar hewan maupun tumbuhan. Motif ini merupakan hasil campuran kebudayaan lokal dengan etnis Cina, karena Pekalongan dahulu merupakan tempat transit para pedagang dari berbagai negara. Ciri khasnya berhubungan dengan alam, seperti motif buketan, jlamprang, semen, terang bulan, lung-lungan, dan pisan bali.',
+        sumberFoto: motifTujuhRupa,
+    },
+    {
+        id: 2,
+        nama: 'Motif Batik Sogan',
+        asal: 'Solo',
+        deskripsi:
+            'Telah ada sejak zaman nenek moyang suku Jawa. Memiliki warna dominan cokelat muda dengan motif khas berupa gambar bunga dengan aksen titik-titik maupun lengkungan garis. Awalnya, batik ini hanya dikenakan oleh raja-raja di keraton kesultanan Solo, namun sekarang sudah umum digunakan oleh siapa saja.',
+        sumberFoto: motifSogan,
+    },
+    {
+        id: 3,
+        nama: 'Motif Batik Gentongan',
+        asal: 'Madura',
+        deskripsi:
+            'Menggunakan motif abstrak sederhana, tanaman, atau kombinasi keduanya dengan warna-warna terang seperti merah, hijau, kuning, atau ungu. Nama "gentongan" berasal dari gentong, yaitu gerabah yang digunakan sebagai wadah untuk mencelupkan kain batik ke dalam cairan pewarna.',
+        sumberFoto: motifGentongan,
+    },
+    {
+        id: 4,
+        nama: 'Motif Batik Mega Mendung',
+        asal: 'Cirebon',
+        deskripsi:
+            'Merupakan motif yang sederhana namun memberi kesan mewah. Motifnya berupa awan di langit mega dengan nuansa warna cerah, menjadikannya cocok digunakan oleh semua kalangan, baik tua maupun muda, laki-laki maupun perempuan.',
+        sumberFoto: motifMegaMendung,
+    },
+    {
+        id: 5,
+        nama: 'Motif Batik Keraton',
+        asal: 'Yogyakarta',
+        deskripsi:
+            'Berasal dari kebudayaan Jawa yang kental akan sistem kesultanan dan menjadi lambang kearifan, kebijaksanaan, serta kharisma raja-raja Jawa. Ciri khasnya adalah motif bunga yang simetris atau sayap burung yang dikenal sebagai motif sawat lar. Awalnya hanya untuk warga keraton, kini sudah umum dipakai.',
+        sumberFoto: motifKeraton,
+    },
+    {
+        id: 6,
+        nama: 'Motif Batik Simbut',
+        asal: 'Banten',
+        deskripsi:
+            'Memiliki gambar menyerupai bentuk daun talas dan merupakan motif yang paling sederhana, hanya dengan menyusun satu jenis motif saja. Berasal dari suku Badui pedalaman, motif ini kemudian berkembang di pesisir Banten dan dikenal juga sebagai batik Banten.',
+        sumberFoto: motifSimbut,
+    },
+    {
+        id: 7,
+        nama: 'Motif Parang',
+        asal: 'Pulau Jawa',
+        deskripsi:
+            'Berasal dari kata "pereng" yang berarti miring, motif ini berbentuk seperti huruf "S" yang miring berombak dan memanjang. Motif ini tersebar di seluruh Jawa (Tengah, Yogyakarta, Barat) dengan variasi aksen yang berbeda, seperti parang rusak, parang barong, parang slobog, dan parang klisik.',
+        sumberFoto: motifParang,
+    },
+    {
+        id: 8,
+        nama: 'Motif Batik Kawung',
+        asal: 'Jawa Tengah',
+        deskripsi:
+            'Terinspirasi dari bentuk buah kolang-kaling yang lonjong dan disusun pada empat sisi membentuk lingkaran. Motif ini sering dianggap kuno namun merupakan salah satu yang paling banyak digunakan. Berkembang di Jawa Tengah dan Yogyakarta dengan perbedaan hanya pada hiasan atau aksennya.',
+        sumberFoto: motifKawung,
+    },
+    {
+        id: 9,
+        nama: 'Motif Pring Sedapur',
+        asal: 'Magetan',
+        deskripsi:
+            'Memiliki ciri khas yang elegan dan sederhana dengan motif utama berupa gambar bambu (pring). Filosofinya memberikan makna ketentraman, kerukunan, dan keteduhan, serta mengajarkan bahwa hidup harus memberi manfaat bagi orang lain.',
+        sumberFoto: motifPringSedapur,
+    },
+    {
+        id: 10,
+        nama: 'Motif Priyangan',
+        asal: 'Tasikmalaya',
+        deskripsi:
+            'Terinspirasi dari tumbuhan yang digambar dan disusun secara simetris dan rapi, memberikan kesan elegan. Warnanya cenderung terang namun kalem dan tidak mencolok, membuatnya cocok untuk berbagai suasana dan acara.',
+        sumberFoto: motifPriyangan,
+    },
+];
+
 export default function GaleriBatik() {
+    const [selectedMotif, setSelectedMotif] = useState<MotifBatik | null>(null);
+
     return (
         <GuestLayout>
-            <div className="mx-auto mt-12 w-full max-w-7xl">
-                <div className="flex flex-col gap-6">
-                    <div className="size- inline-flex items-start justify-start gap-3">
-                        <div className="justify-start font-['Anek_Latin'] text-2xl font-bold text-black">TOP BATIK DI INDONESIA</div>
-                        <div data-svg-wrapper>
-                            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path d="M0 0H26V26H0V0Z" fill="none" />
-                            </svg>
-                        </div>
-                        <div data-svg-wrapper>
-                            <svg width="26" height="26" viewBox="0 0 26 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-                                <path
-                                    fill-rule="evenodd"
-                                    clip-rule="evenodd"
-                                    d="M11.5471 12.9138C8.71611 12.6033 5.96909 11.3631 3.79835 9.19241C1.26107 6.65512 -0.00502837 3.32622 6.24119e-05 -0.00218197C3.32693 -0.00727276 6.65533 1.25831 9.19465 3.7961C11.3654 5.96684 12.604 8.71336 12.9161 11.5449C12.1784 11.5836 11.5874 12.1741 11.5487 12.9118L11.5471 12.9138ZM5.98538 12.9927C4.88117 13.5889 3.84976 14.3265 2.91967 15.196C1.84244 14.6014 0.860925 13.8566 -0.00146484 12.9927C0.860925 12.1283 1.84244 11.385 2.91967 10.7889C3.84976 11.6584 4.88117 12.3961 5.98538 12.9927ZM12.9929 19.9998C13.5891 21.1045 14.3267 22.1354 15.1968 23.066C14.6022 24.1427 13.8574 25.1247 12.9929 25.9871C12.1285 25.1247 11.3858 24.1427 10.7891 23.066C11.6591 22.1354 12.3968 21.1045 12.9929 19.9998ZM20.0005 12.9927C21.1047 13.5889 22.1361 14.3265 23.0662 15.196C24.1434 14.6014 25.1249 13.8566 25.9873 12.9927C25.1249 12.1283 24.1434 11.385 23.0662 10.7889C22.1361 11.6584 21.1047 12.3961 20.0005 12.9927ZM14.4387 12.9138C17.2698 12.6033 20.0168 11.3631 22.1875 9.19241C24.7248 6.65512 25.9909 3.32622 25.9858 -0.00218197C22.6589 -0.00727276 19.3305 1.25831 16.7912 3.7961C14.6205 5.96684 13.3819 8.71336 13.0698 11.5449C13.8075 11.5836 14.3985 12.1762 14.4372 12.9118L14.4387 12.9138ZM11.5471 13.0696C8.71611 13.3796 5.96909 14.6203 3.79835 16.7905C1.26107 19.3283 -0.00502837 22.6567 6.24119e-05 25.9851C3.32693 25.9907 6.65533 24.7246 9.19465 22.1868C11.3654 20.0166 12.606 17.2696 12.9161 14.4385C12.1784 14.3998 11.5874 13.8088 11.5487 13.0716L11.5471 13.0696ZM14.4387 13.0696C17.2698 13.3796 20.0168 14.6203 22.1875 16.7905C24.7248 19.3283 25.9909 22.6567 25.9858 25.9851C22.6589 25.9907 19.3305 24.7246 16.7912 22.1868C14.6205 20.0166 13.3803 17.2696 13.0698 14.4385C13.8075 14.3998 14.3985 13.8088 14.4372 13.0716L14.4387 13.0696ZM12.9929 5.98517C13.5891 4.88045 14.3267 3.84956 15.1968 2.91895C14.6022 1.84223 13.8574 0.860208 12.9929 -0.00218197C12.1285 0.860208 11.3858 1.84223 10.7891 2.91895C11.6591 3.84956 12.3968 4.88045 12.9929 5.98517Z"
-                                    fill="#A6752E"
-                                />
-                            </svg>
-                        </div>
+            <div className="mx-auto mt-12 flex w-full max-w-7xl flex-1 flex-col overflow-auto">
+                <div className="flex flex-1 flex-col gap-6">
+                    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: 'easeInOut' }}>
+                        <h1 className="font-['Anek_Latin'] text-3xl font-bold text-gray-800 md:text-4xl">MACAM-MACAM MOTIF BATIK DI INDONESIA</h1>
+                        <p className="mt-2 max-w-3xl text-gray-600">
+                            Kenali berbagai motif batik tradisional Indonesia yang kaya akan makna dan cerita. Setiap pola mencerminkan filosofi dan
+                            identitas budaya dari daerah asalnya. Jelajahi keindahan visual dan nilai luhur yang tertanam dalam warisan kain
+                            nusantara.
+                        </p>
+                    </motion.div>
+
+                    <div className="grid grid-cols-1 gap-6 overflow-hidden sm:grid-cols-2 md:gap-8 lg:grid-cols-3 xl:grid-cols-4">
+                        {dataMotifBatik.map((v, i) => (
+                            <motion.div
+                                key={v.id}
+                                initial={{ y: 20, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: i * 0.1, duration: 0.5 }}
+                                onClick={() => setSelectedMotif(v)}
+                                className="cursor-pointer"
+                            >
+                                <CardContainer className="w-full" containerClassName="py-0">
+                                    <CardBody className="group/card relative h-full w-full rounded-xl border border-black/[0.1] bg-white p-6 shadow-sm transition-shadow duration-300 hover:shadow-xl">
+                                        <CardItem translateZ="50" className="text-xl font-bold text-neutral-800">
+                                            {v.nama}
+                                        </CardItem>
+                                        <CardItem as="p" translateZ="60" className="mt-2 line-clamp-3 text-sm text-neutral-600">
+                                            {v.deskripsi}
+                                        </CardItem>
+                                        <CardItem translateZ="100" className="mt-4 aspect-video w-full">
+                                            <motion.img
+                                                layoutId={`image-${v.id}`}
+                                                src={v.sumberFoto}
+                                                className="h-full w-full rounded-lg object-cover"
+                                                alt={`Batik ${v.nama}`}
+                                            />
+                                        </CardItem>
+                                    </CardBody>
+                                </CardContainer>
+                            </motion.div>
+                        ))}
                     </div>
                 </div>
             </div>
+
+            <AnimatePresence>
+                {selectedMotif && (
+                    <motion.div
+                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
+                        initial={{ opacity: 0 }}
+                        animate={{ opacity: 1 }}
+                        exit={{ opacity: 0 }}
+                    >
+                        <div className="relative w-full max-w-3xl overflow-hidden rounded-xl bg-white shadow-2xl">
+                            <motion.button
+                                onClick={() => setSelectedMotif(null)}
+                                className="absolute top-4 right-4 z-10 rounded-full bg-white/70 p-2 text-gray-700 transition-colors hover:bg-white hover:text-black"
+                                whileHover={{ scale: 1.1 }}
+                                whileTap={{ scale: 0.9 }}
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                            </motion.button>
+                            <div className="max-h-[90vh] overflow-y-auto">
+                                <motion.img
+                                    layoutId={`image-${selectedMotif.id}`}
+                                    src={selectedMotif.sumberFoto}
+                                    className="h-auto w-full object-cover md:h-96"
+                                    alt={`Batik ${selectedMotif.nama}`}
+                                />
+                                <div className="p-6 md:p-8">
+                                    <motion.h2
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1, transition: { delay: 0.2 } }}
+                                        className="text-3xl font-bold text-gray-900"
+                                    >
+                                        {selectedMotif.nama}
+                                    </motion.h2>
+                                    <motion.h3
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1, transition: { delay: 0.3 } }}
+                                        className="mt-1 text-lg font-semibold text-indigo-600"
+                                    >
+                                        Asal: {selectedMotif.asal}
+                                    </motion.h3>
+                                    <motion.p
+                                        initial={{ y: 20, opacity: 0 }}
+                                        animate={{ y: 0, opacity: 1, transition: { delay: 0.4 } }}
+                                        className="mt-4 leading-relaxed text-gray-700"
+                                    >
+                                        {selectedMotif.deskripsi}
+                                    </motion.p>
+                                </div>
+                            </div>
+                        </div>
+                        {/* This is the backdrop with the close function */}
+                        <div className="absolute inset-0 -z-10" onClick={() => setSelectedMotif(null)}></div>
+                    </motion.div>
+                )}
+            </AnimatePresence>
         </GuestLayout>
     );
 }

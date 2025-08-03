@@ -1,0 +1,1 @@
+import{j as t}from"./app-DGP2XNnp.js";import{G as r}from"./guest-layout-D-lt4y9w.js";/* empty css            */import"./proxy-BVzd1WBV.js";function s(){return t.jsx(r,{children:"ruang-batik"})}export{s as default};
