@@ -1,0 +1,1 @@
+import{j as t}from"./app-Dord12gd.js";import{G as o}from"./guest-layout-CHShZfVG.js";/* empty css            */import"./proxy-Cs4uS0dM.js";function u(){return t.jsx(o,{children:"komunitas"})}export{u as default};

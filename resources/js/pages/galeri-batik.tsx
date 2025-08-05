@@ -110,7 +110,7 @@ export default function GaleriBatik() {
 
     return (
         <GuestLayout>
-            <div className="mx-auto mt-12 flex w-full max-w-7xl flex-1 flex-col overflow-auto">
+            <div className="mx-auto mt-12 flex w-full max-w-7xl flex-1 flex-col">
                 <div className="flex flex-1 flex-col gap-6">
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: 'easeInOut' }}>
                         <h1 className="font-['Anek_Latin'] text-3xl font-bold text-gray-800 md:text-4xl">MACAM-MACAM MOTIF BATIK DI INDONESIA</h1>
@@ -179,7 +179,7 @@ export default function GaleriBatik() {
                                 <motion.img
                                     layoutId={`image-${selectedMotif.id}`}
                                     src={selectedMotif.sumberFoto}
-                                    className="h-auto w-full object-cover md:h-96"
+                                    className="aspect-video w-full object-cover"
                                     alt={`Batik ${selectedMotif.nama}`}
                                 />
                                 <div className="p-6 md:p-8">
