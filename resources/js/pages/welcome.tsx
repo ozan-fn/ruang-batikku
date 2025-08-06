@@ -13,7 +13,7 @@ export default function Welcome() {
     return (
         <GuestLayout>
             {/* Kontainer utama dengan padding dan margin responsif */}
-            <div className="mx-auto mt-8 w-full max-w-7xl px-4 sm:px-6 md:mt-12 lg:px-8">
+            <div className="mx-auto mt-8 w-full max-w-7xl px-4 pb-24 sm:px-6 md:mt-12 lg:px-8">
                 {/* - Tata letak fleksibel: 
                   - Tumpukan vertikal (flex-col) di layar kecil.
                   - Berdampingan (lg:flex-row) di layar besar.
@@ -106,7 +106,7 @@ export default function Welcome() {
                     {/* - Mengatur urutan: Gambar muncul pertama di seluler (order-1), tapi kedua di layar besar (lg:order-2).
                       - Lebar gambar disesuaikan agar tidak terlalu besar di seluler.
                     */}
-                    <div className="relative order-1 flex w-full max-w-md justify-center lg:order-2 lg:w-1/2 lg:max-w-none lg:justify-end">
+                    <div className="relative order-1 -mt-26 -mb-13 flex w-full max-w-md justify-center lg:order-2 lg:-my-4 lg:w-1/2 lg:max-w-none lg:justify-end">
                         <motion.img
                             animate={{ x: [12, 0], opacity: [0, 1] }}
                             transition={{ duration: 1.6, delay: 0.6, type: 'spring' }}

@@ -1,34 +1,74 @@
 import GuestLayout from '@/layouts/guest-layout';
-import { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
+import Konva from 'konva';
+import type { KonvaEventObject } from 'konva/lib/Node';
+import { Eraser, HelpCircle, Pen } from 'lucide-react';
+import React, { forwardRef, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import { Image, Layer, Line, Rect, Stage } from 'react-konva';
 import useImage from 'use-image';
 
 // ====================================================================
-// 1. KOMPONEN KANVAS BARU DENGAN REACT-KONVA
-// Komponen ini mengurus semua logika menggambar.
+// 1. DEFINISI TIPE (TYPESCRIPT)
 // ====================================================================
 
-const DrawingCanvas = forwardRef(({ motifSrc, brushColor, brushSize, width, height }, ref) => {
+type Tool = 'pen' | 'eraser';
+
+interface LineData {
+    tool: Tool;
+    points: number[];
+    color: string;
+    size: number;
+}
+
+interface StageState {
+    scale: number;
+    x: number;
+    y: number;
+}
+
+interface DrawingCanvasProps {
+    motifSrc: string;
+    brushColor: string;
+    brushSize: number;
+    width: number;
+    height: number;
+    activeTool: Tool;
+}
+
+export interface CanvasHandle {
+    undo: () => void;
+    clear: () => void;
+    getDownloadDataURL: () => string | null;
+}
+
+// ====================================================================
+// 2. KOMPONEN KANVAS
+// ====================================================================
+
+const getDistance = (p1: { x: number; y: number }, p2: { x: number; y: number }): number => {
+    return Math.sqrt(Math.pow(p2.x - p1.x, 2) + Math.pow(p2.y - p1.y, 2));
+};
+
+const DrawingCanvas = forwardRef<CanvasHandle, DrawingCanvasProps>(({ motifSrc, brushColor, brushSize, width, height, activeTool }, ref) => {
     const [image] = useImage(motifSrc, 'anonymous');
-    const [lines, setLines] = useState([]);
-    const [stage, setStage] = useState({ scale: 1, x: 0, y: 0 });
+    const [lines, setLines] = useState<LineData[]>([]);
+    const [stage, setStage] = useState<StageState>({ scale: 1, x: 0, y: 0 });
     const [isSpaceDown, setIsSpaceDown] = useState(false);
 
     const isDrawing = useRef(false);
+    const lastDist = useRef(0);
+    const lastCenter = useRef<{ x: number; y: number } | null>(null);
 
-    // --- Refs untuk node Konva ---
-    const stageRef = useRef(null);
-    const drawingLayerRef = useRef(null); // Ref untuk layer gambar
+    const stageRef = useRef<Konva.Stage>(null);
+    const drawingLayerRef = useRef<Konva.Layer>(null);
 
-    // --- Efek untuk mendeteksi penekanan tombol Spasi ---
     useEffect(() => {
-        const handleKeyDown = (e) => {
+        const handleKeyDown = (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 e.preventDefault();
                 setIsSpaceDown(true);
             }
         };
-        const handleKeyUp = (e) => {
+        const handleKeyUp = (e: KeyboardEvent) => {
             if (e.code === 'Space') {
                 e.preventDefault();
                 setIsSpaceDown(false);
@@ -44,173 +84,230 @@ const DrawingCanvas = forwardRef(({ motifSrc, brushColor, brushSize, width, heig
         };
     }, []);
 
+    // --- Logika untuk memposisikan gambar dan kanvas putih ---
+    let imgProps = { x: 0, y: 0, width: 0, height: 0 };
+    let canvasRectProps = { x: 0, y: 0, width: 0, height: 0 };
+
+    if (image) {
+        const stageWidth = width;
+        const stageHeight = height;
+
+        const imgAspectRatio = image.width / image.height;
+        const stageAspectRatio = stageWidth / stageHeight;
+        let drawWidth = image.width;
+        let drawHeight = image.height;
+
+        if (imgAspectRatio > stageAspectRatio) {
+            drawWidth = stageWidth * 0.9;
+            drawHeight = drawWidth / imgAspectRatio;
+        } else {
+            drawHeight = stageHeight * 0.9;
+            drawWidth = drawHeight * imgAspectRatio;
+        }
+
+        const baseSize = Math.max(drawWidth, drawHeight);
+        const canvasSide = baseSize * 1.5;
+        const finalCanvasSide = Math.min(canvasSide, stageWidth * 0.95, stageHeight * 0.95);
+
+        canvasRectProps = {
+            width: finalCanvasSide,
+            height: finalCanvasSide,
+            x: (stageWidth - finalCanvasSide) / 2,
+            y: (stageHeight - finalCanvasSide) / 2,
+        };
+
+        imgProps = {
+            width: drawWidth,
+            height: drawHeight,
+            x: canvasRectProps.x + (finalCanvasSide - drawWidth) / 2,
+            y: canvasRectProps.y + (finalCanvasSide - drawHeight) / 2,
+        };
+    }
+
     useImperativeHandle(ref, () => ({
-        undo: () => {
-            setLines(lines.slice(0, -1));
-        },
-        clear: () => {
-            setLines([]);
-        },
+        undo: () => setLines(lines.slice(0, -1)),
+        clear: () => setLines([]),
         getDownloadDataURL: () => {
-            if (!drawingLayerRef.current || !image) return null;
+            if (!image || !drawingLayerRef.current) return null;
 
-            // Simpan state panggung saat ini
-            const originalState = { ...stage };
+            // KUNCI PERBAIKAN: Buat div sementara untuk panggung ekspor
+            const tempContainer = document.createElement('div');
 
-            // Reset panggung ke posisi dan skala awal untuk ekspor yang akurat
-            stageRef.current.scale({ x: 1, y: 1 });
-            stageRef.current.position({ x: 0, y: 0 });
-            stageRef.current.batchDraw(); // Paksa re-render
+            const tempStage = new Konva.Stage({
+                container: tempContainer, // Hubungkan panggung ke div
+                width: image.width,
+                height: image.height,
+            });
+            const tempLayer = new Konva.Layer();
+            tempStage.add(tempLayer);
 
-            // Ekspor HANYA layer gambar dengan latar transparan
-            const dataURL = drawingLayerRef.current.toDataURL({
-                x: imgProps.x,
-                y: imgProps.y,
-                width: imgProps.width,
-                height: imgProps.height,
-                mimeType: 'image/png',
+            const scaleX = image.width / imgProps.width;
+
+            lines.forEach((line) => {
+                const transformedPoints = line.points.map((point, i) => {
+                    if (i % 2 === 0) {
+                        return (point - imgProps.x) * scaleX;
+                    } else {
+                        return (point - imgProps.y) * scaleX;
+                    }
+                });
+
+                tempLayer.add(
+                    new Konva.Line({
+                        points: transformedPoints,
+                        stroke: line.color,
+                        strokeWidth: line.size * scaleX,
+                        tension: 0.5,
+                        lineCap: 'round',
+                        lineJoin: 'round',
+                        globalCompositeOperation: line.tool === 'eraser' ? 'destination-out' : 'source-over',
+                    }),
+                );
             });
 
-            // Kembalikan panggung ke state semula
-            stageRef.current.scale({ x: originalState.scale, y: originalState.scale });
-            stageRef.current.position({ x: originalState.x, y: originalState.y });
-            stageRef.current.batchDraw();
+            tempLayer.draw();
 
-            return dataURL;
+            return tempStage.toDataURL({ mimeType: 'image/png' });
         },
     }));
 
-    // --- Logika Event Handler Terpadu ---
-    const handleMouseDown = (e) => {
-        // Jangan menggambar jika mode geser (spasi) aktif atau bukan klik kiri
-        if (isSpaceDown || e.evt.button !== 0) return;
-        isDrawing.current = true;
-        const stage = e.target.getStage();
-        const pos = stage.getPointerPosition();
-
-        // KUNCI PERBAIKAN: Ubah koordinat pointer ke sistem koordinat panggung
-        const transformedPos = {
-            x: (pos.x - stage.x()) / stage.scaleX(),
-            y: (pos.y - stage.y()) / stage.scaleY(),
+    const handleEvent = (e: KonvaEventObject<MouseEvent | TouchEvent>) => {
+        const stageNode = e.target.getStage();
+        if (!stageNode) return null;
+        const pos = stageNode.getPointerPosition();
+        if (!pos) return null;
+        return {
+            x: (pos.x - stageNode.x()) / stageNode.scaleX(),
+            y: (pos.y - stageNode.y()) / stageNode.scaleY(),
         };
-
-        setLines([...lines, { points: [transformedPos.x, transformedPos.y], color: brushColor, size: brushSize }]);
     };
 
-    const handleMouseMove = (e) => {
+    const handleMouseDown = (e: KonvaEventObject<MouseEvent>) => {
+        if (isSpaceDown || e.evt.button !== 0) return;
+        isDrawing.current = true;
+        const pos = handleEvent(e);
+        if (pos) {
+            setLines([...lines, { points: [pos.x, pos.y], color: brushColor, size: brushSize, tool: activeTool }]);
+        }
+    };
+
+    const handleMouseMove = (e: KonvaEventObject<MouseEvent>) => {
         if (!isDrawing.current || isSpaceDown) return;
-        const stage = e.target.getStage();
-        const pos = stage.getPointerPosition();
-
-        // KUNCI PERBAIKAN: Ubah koordinat pointer ke sistem koordinat panggung
-        const transformedPos = {
-            x: (pos.x - stage.x()) / stage.scaleX(),
-            y: (pos.y - stage.y()) / stage.scaleY(),
-        };
-
-        let lastLine = lines[lines.length - 1];
-
-        lastLine.points = lastLine.points.concat([transformedPos.x, transformedPos.y]);
-        setLines([...lines.slice(0, -1), lastLine]);
+        const pos = handleEvent(e);
+        if (pos) {
+            let lastLine = lines[lines.length - 1];
+            lastLine.points = lastLine.points.concat([pos.x, pos.y]);
+            setLines([...lines.slice(0, -1), lastLine]);
+        }
     };
 
     const handleMouseUp = () => {
         isDrawing.current = false;
     };
 
-    // --- Logika Navigasi (Zoom & Pan) dengan Mouse Wheel ---
-    const handleWheel = (e) => {
+    const handleTouchStart = (e: KonvaEventObject<TouchEvent>) => {
         e.evt.preventDefault();
-        const stage = e.target.getStage();
-
-        // ZOOM: dengan Ctrl/Cmd + Scroll
-        if (e.evt.ctrlKey || e.evt.metaKey) {
-            const scaleBy = 1.05;
-            const oldScale = stage.scaleX();
-            const pointer = stage.getPointerPosition();
-
-            const mousePointTo = {
-                x: (pointer.x - stage.x()) / oldScale,
-                y: (pointer.y - stage.y()) / oldScale,
-            };
-            const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
-            setStage({
-                scale: newScale,
-                x: pointer.x - mousePointTo.x * newScale,
-                y: pointer.y - mousePointTo.y * newScale,
-            });
-        } else {
-            // PAN: dengan Scroll (Vertikal) atau Shift+Scroll (Horizontal)
-            const panSpeedFactor = 4; // Angka lebih besar = lebih lambat
-
-            // Jika Shift ditekan, gunakan deltaY untuk menggeser secara horizontal (sumbu X)
-            if (e.evt.shiftKey) {
-                const dx = e.evt.deltaY / panSpeedFactor;
-                setStage((prevStage) => ({
-                    ...prevStage,
-                    x: prevStage.x - dx,
-                }));
-            } else {
-                // Jika tidak, gunakan deltaY untuk menggeser secara vertikal (sumbu Y)
-                const dy = e.evt.deltaY / panSpeedFactor;
-                setStage((prevStage) => ({
-                    ...prevStage,
-                    y: prevStage.y - dy,
-                }));
+        const touches = e.evt.touches;
+        if (touches.length === 1) {
+            isDrawing.current = true;
+            const pos = handleEvent(e);
+            if (pos) {
+                setLines([...lines, { points: [pos.x, pos.y], color: brushColor, size: brushSize, tool: activeTool }]);
             }
+        } else if (touches.length > 1) {
+            isDrawing.current = false;
+            const touch1 = touches[0];
+            const touch2 = touches[1];
+            lastDist.current = getDistance({ x: touch1.clientX, y: touch1.clientY }, { x: touch2.clientX, y: touch2.clientY });
+            lastCenter.current = { x: (touch1.clientX + touch2.clientX) / 2, y: (touch1.clientY + touch2.clientY) / 2 };
         }
     };
 
-    // --- Logika untuk memposisikan gambar (contain & center) ---
-    let imgProps = { x: 0, y: 0, width: 0, height: 0 };
-    if (image) {
-        const stageWidth = width;
-        const stageHeight = height;
-        const imgAspectRatio = image.width / image.height;
-        const stageAspectRatio = stageWidth / stageHeight;
+    const handleTouchMove = (e: KonvaEventObject<TouchEvent>) => {
+        e.evt.preventDefault();
+        const touches = e.evt.touches;
+        const stageNode = e.target.getStage();
+        if (!stageNode) return;
 
-        let drawWidth = image.width;
-        let drawHeight = image.height;
+        if (touches.length === 1 && isDrawing.current) {
+            const pos = handleEvent(e);
+            if (pos) {
+                let lastLine = lines[lines.length - 1];
+                lastLine.points = lastLine.points.concat([pos.x, pos.y]);
+                setLines([...lines.slice(0, -1), lastLine]);
+            }
+        } else if (touches.length > 1) {
+            const touch1 = touches[0];
+            const touch2 = touches[1];
+            const newDist = getDistance({ x: touch1.clientX, y: touch1.clientY }, { x: touch2.clientX, y: touch2.clientY });
+            const newCenter = { x: (touch1.clientX + touch2.clientX) / 2, y: (touch1.clientY + touch2.clientY) / 2 };
 
-        if (imgAspectRatio > stageAspectRatio) {
-            drawWidth = stageWidth;
-            drawHeight = stageWidth / imgAspectRatio;
-        } else {
-            drawHeight = stageHeight;
-            drawWidth = stageHeight * imgAspectRatio;
+            if (!lastDist.current || !lastCenter.current) return;
+
+            const oldScale = stageNode.scaleX();
+            const newScale = oldScale * (newDist / lastDist.current);
+            const dx = newCenter.x - lastCenter.current.x;
+            const dy = newCenter.y - lastCenter.current.y;
+
+            setStage({ scale: newScale, x: stageNode.x() + dx, y: stageNode.y() + dy });
+            lastDist.current = newDist;
+            lastCenter.current = newCenter;
         }
+    };
 
-        imgProps = {
-            width: drawWidth,
-            height: drawHeight,
-            x: (stageWidth - drawWidth) / 2,
-            y: (stageHeight - drawHeight) / 2,
-        };
-    }
+    const handleTouchEnd = () => {
+        isDrawing.current = false;
+        lastDist.current = 0;
+        lastCenter.current = null;
+    };
 
-    const clipFunc = (ctx) => {
+    const handleWheel = (e: KonvaEventObject<WheelEvent>) => {
+        e.evt.preventDefault();
+        const stageNode = e.target.getStage();
+        if (!stageNode) return;
+
+        if (e.evt.ctrlKey || e.evt.metaKey) {
+            const scaleBy = 1.05;
+            const oldScale = stageNode.scaleX();
+            const pointer = stageNode.getPointerPosition();
+            if (!pointer) return;
+            const mousePointTo = { x: (pointer.x - stageNode.x()) / oldScale, y: (pointer.y - stageNode.y()) / oldScale };
+            const newScale = e.evt.deltaY > 0 ? oldScale / scaleBy : oldScale * scaleBy;
+            setStage({ scale: newScale, x: pointer.x - mousePointTo.x * newScale, y: pointer.y - mousePointTo.y * newScale });
+        } else {
+            const panSpeedFactor = 4;
+            let dx = e.evt.shiftKey ? e.evt.deltaY / panSpeedFactor : e.evt.deltaX / panSpeedFactor;
+            let dy = e.evt.shiftKey ? 0 : e.evt.deltaY / panSpeedFactor;
+            setStage((prevStage) => ({ ...prevStage, x: prevStage.x - dx, y: prevStage.y - dy }));
+        }
+    };
+
+    const clipFunc = (ctx: Konva.Context) => {
         ctx.rect(imgProps.x, imgProps.y, imgProps.width, imgProps.height);
     };
 
     return (
-        <div style={{ cursor: isSpaceDown ? 'grab' : 'crosshair' }}>
+        <div style={{ cursor: isSpaceDown ? 'grab' : activeTool === 'eraser' ? 'cell' : 'crosshair', touchAction: 'none' }}>
             <Stage
                 ref={stageRef}
                 width={width}
                 height={height}
-                style={{ border: '2px solid #955932' }}
+                style={{ backgroundColor: '#f0f0f0' }}
                 onMouseDown={handleMouseDown}
                 onMouseMove={handleMouseMove}
                 onMouseUp={handleMouseUp}
+                onTouchStart={handleTouchStart}
+                onTouchMove={handleTouchMove}
+                onTouchEnd={handleTouchEnd}
                 onWheel={handleWheel}
-                draggable={isSpaceDown} // Hanya bisa digeser saat Spasi ditekan
+                draggable={isSpaceDown}
                 scaleX={stage.scale}
                 scaleY={stage.scale}
                 x={stage.x}
                 y={stage.y}
             >
                 <Layer>
-                    <Rect x={0} y={0} width={width} height={height} fill="white" />
+                    <Rect {...canvasRectProps} fill="white" shadowBlur={10} shadowOpacity={0.2} cornerRadius={4} />
                     <Image image={image} {...imgProps} />
                 </Layer>
 
@@ -224,7 +321,7 @@ const DrawingCanvas = forwardRef(({ motifSrc, brushColor, brushSize, width, heig
                             tension={0.5}
                             lineCap="round"
                             lineJoin="round"
-                            globalCompositeOperation="source-over"
+                            globalCompositeOperation={line.tool === 'eraser' ? 'destination-out' : 'source-over'}
                         />
                     ))}
                 </Layer>
@@ -234,7 +331,7 @@ const DrawingCanvas = forwardRef(({ motifSrc, brushColor, brushSize, width, heig
 });
 
 // ====================================================================
-// 2. KOMPONEN UTAMA HALAMAN (RUANG BATIK)
+// 3. KOMPONEN UTAMA HALAMAN (RUANG BATIK)
 // ====================================================================
 const motifs = [
     { id: 'parang-rusak', name: 'Parang Rusak', src: 'https://placehold.co/512x512/FCECD5/4A2E20?text=Parang+Rusak' },
@@ -242,11 +339,32 @@ const motifs = [
     { id: 'kawung', name: 'Kawung', src: 'https://placehold.co/600x600/E0E0E0/333333?text=Kawung' },
 ];
 
-export default function RuangBatik() {
-    const [selectedMotif, setSelectedMotif] = useState(motifs[0].src);
-    const [brushColor, setBrushColor] = useState('#000000');
-    const [brushSize, setBrushSize] = useState(5);
-    const canvasRef = useRef(null);
+const RuangBatik: React.FC = () => {
+    const [selectedMotif, setSelectedMotif] = useState<string>(motifs[0].src);
+    const [brushColor, setBrushColor] = useState<string>('#000000');
+    const [brushSize, setBrushSize] = useState<number>(5);
+    const [activeTool, setActiveTool] = useState<Tool>('pen');
+    const [canvasDimensions, setCanvasDimensions] = useState({ width: 0, height: 0 });
+
+    const canvasRef = useRef<CanvasHandle>(null);
+    const containerRef = useRef<HTMLDivElement>(null);
+
+    useEffect(() => {
+        const handleResize = () => {
+            if (containerRef.current) {
+                const width = containerRef.current.offsetWidth;
+                const height = window.innerHeight * 0.5; // 50vh for more space
+                setCanvasDimensions({ width, height });
+            }
+        };
+
+        handleResize();
+        window.addEventListener('resize', handleResize);
+
+        return () => {
+            window.removeEventListener('resize', handleResize);
+        };
+    }, []);
 
     const handleUndo = () => canvasRef.current?.undo();
     const handleErase = () => canvasRef.current?.clear();
@@ -261,20 +379,47 @@ export default function RuangBatik() {
             document.body.removeChild(link);
         }
     };
+    const handleHelp = () => {
+        alert(
+            'Bantuan Navigasi Kanvas:\n\n' +
+                '- Gambar: Klik dan geser dengan mouse atau gunakan satu jari di layar sentuh.\n' +
+                '- Geser (Pan): Tahan tombol Spasi, lalu klik dan geser.\n' +
+                '- Zoom: Tahan tombol Ctrl (atau Cmd di Mac), lalu gunakan scroll wheel, atau gunakan dua jari (pinch-to-zoom) di layar sentuh.\n' +
+                '- Geser Vertikal: Gunakan scroll wheel.\n' +
+                '- Geser Horizontal: Tahan tombol Shift, lalu gunakan scroll wheel.',
+        );
+    };
 
     return (
         <GuestLayout>
             <div className="mx-auto mt-8 flex w-full max-w-7xl flex-col items-center gap-8 px-4 sm:px-6 lg:px-8">
                 <div className="flex w-full flex-col gap-4">
-                    <div className="text-center">
+                    <div className="flex flex-col">
                         <h1 className="text-2xl font-bold sm:text-3xl">SELAMAT DATANG DI RUANG BATIK</h1>
-                        <p className="mx-auto mt-2 max-w-3xl">
-                            Ciptakan mahakarya batik digital Anda sendiri. Pilih motif, warnai, dan unduh karya Anda.
+                        <p className="mt-2 max-w-3xl">
+                            Jelajahi dunia batik digital yang interaktif. Pilih motif khas, beri warna sesuai imajinasi, dan unduh karya Anda sebagai
+                            bentuk ekspresi budaya.
                         </p>
                     </div>
 
-                    <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-[#fcedd5] p-4 shadow-md">
-                        <div className="flex items-center gap-4">
+                    <div className="flex flex-wrap items-center justify-between gap-4 rounded-lg bg-[#fcedd5] p-2 shadow-md">
+                        <div className="flex flex-wrap items-center gap-4">
+                            <div className="flex items-center gap-1 rounded-md bg-white/50 p-1">
+                                <button
+                                    onClick={() => setActiveTool('pen')}
+                                    className={`rounded p-2 transition-colors ${activeTool === 'pen' ? 'bg-blue-200 text-blue-800' : 'hover:bg-gray-200'}`}
+                                    title="Pen"
+                                >
+                                    <Pen size={20} />
+                                </button>
+                                <button
+                                    onClick={() => setActiveTool('eraser')}
+                                    className={`rounded p-2 transition-colors ${activeTool === 'eraser' ? 'bg-blue-200 text-blue-800' : 'hover:bg-gray-200'}`}
+                                    title="Eraser"
+                                >
+                                    <Eraser size={20} />
+                                </button>
+                            </div>
                             <div className="flex items-center gap-2">
                                 <label htmlFor="color" className="font-medium text-[#4A2E20]">
                                     Warna:
@@ -316,18 +461,28 @@ export default function RuangBatik() {
                             >
                                 Download
                             </button>
+                            <button
+                                onClick={handleHelp}
+                                className="flex items-center gap-1.5 rounded bg-sky-600 px-3 py-1 text-white shadow transition hover:bg-sky-700"
+                            >
+                                <HelpCircle size={16} />
+                                <span>Bantuan</span>
+                            </button>
                         </div>
                     </div>
 
-                    <div className="flex justify-center">
-                        <DrawingCanvas
-                            ref={canvasRef}
-                            motifSrc={selectedMotif}
-                            brushColor={brushColor}
-                            brushSize={brushSize}
-                            width={768}
-                            height={400}
-                        />
+                    <div ref={containerRef} className="w-full">
+                        {canvasDimensions.width > 0 && (
+                            <DrawingCanvas
+                                ref={canvasRef}
+                                motifSrc={selectedMotif}
+                                brushColor={brushColor}
+                                brushSize={brushSize}
+                                width={canvasDimensions.width}
+                                height={canvasDimensions.height}
+                                activeTool={activeTool}
+                            />
+                        )}
                     </div>
                 </div>
 
@@ -353,4 +508,6 @@ export default function RuangBatik() {
             </div>
         </GuestLayout>
     );
-}
+};
+
+export default RuangBatik;

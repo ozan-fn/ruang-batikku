@@ -1,0 +1,1 @@
+import{j as t}from"./app-DRjE6L6n.js";import{G as o}from"./guest-layout-CNo1euXn.js";/* empty css            */import"./proxy-CnWi1WkG.js";function u(){return t.jsx(o,{children:"komunitas"})}export{u as default};

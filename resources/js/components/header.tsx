@@ -44,7 +44,7 @@ export default function Header() {
                         <div className="h-fit rounded-sm bg-[#FCEDD5] p-1">
                             <img src={logo} alt="Logo Ruang Batikku" className="h-8 w-8" />
                         </div>
-                        <div className="hidden justify-start sm:block">
+                        <div className="justify-start">
                             <span className="text-lg font-bold text-white [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]">RUANG </span>
                             <span className="text-lg font-bold text-[#e5a378] [text-shadow:_0px_0px_4px_rgb(0_0_0_/_0.25)]">BATIKKU</span>
                         </div>
