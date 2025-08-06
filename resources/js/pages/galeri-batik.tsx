@@ -110,11 +110,11 @@ export default function GaleriBatik() {
 
     return (
         <GuestLayout>
-            <div className="mx-auto mt-12 flex w-full max-w-7xl flex-1 flex-col">
+            <div className="mx-auto mt-24 flex w-full max-w-7xl flex-col items-center gap-8 px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-1 flex-col gap-6">
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ duration: 0.8, ease: 'easeInOut' }}>
-                        <h1 className="font-['Anek_Latin'] text-3xl font-bold text-gray-800 md:text-4xl">MACAM-MACAM MOTIF BATIK DI INDONESIA</h1>
-                        <p className="mt-2 max-w-3xl text-gray-600">
+                        <h1 className="text-2xl font-bold sm:text-3xl">MACAM-MACAM MOTIF BATIK DI INDONESIA</h1>
+                        <p className="mt-2 max-w-3xl">
                             Kenali berbagai motif batik tradisional Indonesia yang kaya akan makna dan cerita. Setiap pola mencerminkan filosofi dan
                             identitas budaya dari daerah asalnya. Jelajahi keindahan visual dan nilai luhur yang tertanam dalam warisan kain
                             nusantara.
@@ -158,7 +158,7 @@ export default function GaleriBatik() {
             <AnimatePresence>
                 {selectedMotif && (
                     <motion.div
-                        className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                        className="fixed inset-0 z-50 flex items-center justify-center overflow-hidden p-4"
                         style={{ backgroundColor: 'rgba(0, 0, 0, 0.7)' }}
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}

@@ -333,11 +333,7 @@ const DrawingCanvas = forwardRef<CanvasHandle, DrawingCanvasProps>(({ motifSrc, 
 // ====================================================================
 // 3. KOMPONEN UTAMA HALAMAN (RUANG BATIK)
 // ====================================================================
-const motifs = [
-    { id: 'parang-rusak', name: 'Parang Rusak', src: 'https://placehold.co/512x512/FCECD5/4A2E20?text=Parang+Rusak' },
-    { id: 'mega-mendung', name: 'Mega Mendung', src: 'https://placehold.co/800x600/D1E5F0/1E3A8A?text=Mega+Mendung' },
-    { id: 'kawung', name: 'Kawung', src: 'https://placehold.co/600x600/E0E0E0/333333?text=Kawung' },
-];
+const motifs = [{ id: 'parang-rusak', name: 'Parang Rusak', src: '/d.png' }];
 
 const RuangBatik: React.FC = () => {
     const [selectedMotif, setSelectedMotif] = useState<string>(motifs[0].src);
@@ -392,7 +388,7 @@ const RuangBatik: React.FC = () => {
 
     return (
         <GuestLayout>
-            <div className="mx-auto mt-8 flex w-full max-w-7xl flex-col items-center gap-8 px-4 sm:px-6 lg:px-8">
+            <div className="mx-auto mt-24 flex w-full max-w-7xl flex-col items-center gap-8 px-4 sm:px-6 lg:px-8">
                 <div className="flex w-full flex-col gap-4">
                     <div className="flex flex-col">
                         <h1 className="text-2xl font-bold sm:text-3xl">SELAMAT DATANG DI RUANG BATIK</h1>

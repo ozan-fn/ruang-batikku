@@ -9,7 +9,7 @@ import InputError from '@/components/input-error';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import AppLayout from '@/layouts/app-layout';
+import GuestLayout from '@/layouts/guest-layout';
 import SettingsLayout from '@/layouts/settings/layout';
 
 const breadcrumbs: BreadcrumbItem[] = [
@@ -22,26 +22,28 @@ const breadcrumbs: BreadcrumbItem[] = [
 type ProfileForm = {
     name: string;
     email: string;
+    avatar: File | null;
 };
 
 export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: boolean; status?: string }) {
     const { auth } = usePage<SharedData>().props;
 
-    const { data, setData, patch, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
+    const { data, setData, post, errors, processing, recentlySuccessful } = useForm<Required<ProfileForm>>({
         name: auth.user.name,
         email: auth.user.email,
+        avatar: null,
     });
 
     const submit: FormEventHandler = (e) => {
         e.preventDefault();
 
-        patch(route('profile.update'), {
+        post(route('profile.update'), {
             preserveScroll: true,
         });
     };
 
     return (
-        <AppLayout breadcrumbs={breadcrumbs}>
+        <GuestLayout>
             <Head title="Profile settings" />
 
             <SettingsLayout>
@@ -49,6 +51,20 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
                     <HeadingSmall title="Profile information" description="Update your name and email address" />
 
                     <form onSubmit={submit} className="space-y-6">
+                        <div className="grid gap-2">
+                            <Label htmlFor="profile_photo">Foto Profil</Label>
+
+                            <Input id="profile_photo" type="file" accept="image/*" onChange={(e) => setData('avatar', e.target.files?.[0] ?? null)} />
+
+                            <InputError className="mt-2" message={errors.avatar} />
+
+                            {data.avatar ? (
+                                <img src={URL.createObjectURL(data.avatar)} alt="Preview" className="mt-2 h-24 w-24 rounded-full object-cover" />
+                            ) : auth.user.avatar ? (
+                                <img src={`/storage/${auth.user.avatar}`} alt="Current Avatar" className="mt-2 h-24 w-24 rounded-full object-cover" />
+                            ) : null}
+                        </div>
+
                         <div className="grid gap-2">
                             <Label htmlFor="name">Name</Label>
 
@@ -122,6 +138,6 @@ export default function Profile({ mustVerifyEmail, status }: { mustVerifyEmail: 
 
                 <DeleteUser />
             </SettingsLayout>
-        </AppLayout>
+        </GuestLayout>
     );
 }

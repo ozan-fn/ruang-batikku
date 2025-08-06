@@ -32,7 +32,7 @@ export default function GuestLayout(props: { children: ReactNode }) {
                 </div>
 
                 {/* PERUBAHAN RESPONSIVE: Margin atas disesuaikan untuk mobile (mt-20) dan desktop (sm:mt-16) */}
-                <div className="relative mt-20 flex flex-1 flex-col sm:mt-16">{props.children}</div>
+                <div className="relative flex flex-1 flex-col">{props.children}</div>
 
                 <Header />
             </div>

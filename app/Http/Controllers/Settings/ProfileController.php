@@ -8,6 +8,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Storage;
 use Inertia\Inertia;
 use Inertia\Response;
 
@@ -35,10 +36,63 @@ class ProfileController extends Controller
             $request->user()->email_verified_at = null;
         }
 
+        if ($request->hasFile('avatar')) {
+            // Hapus file lama jika ada
+            if ($request->user()->avatar && Storage::disk('public')->exists($request->user()->avatar)) {
+                Storage::disk('public')->delete($request->user()->avatar);
+            }
+
+            $file = $request->file('avatar');
+            $imagePath = $file->getRealPath();
+            $mime = $file->getMimeType();
+
+            $src = match ($mime) {
+                'image/jpeg' => imagecreatefromjpeg($imagePath),
+                'image/png' => imagecreatefrompng($imagePath),
+                'image/webp' => imagecreatefromwebp($imagePath),
+                default => null,
+            };
+
+            if ($src) {
+                $width = imagesx($src);
+                $height = imagesy($src);
+
+                if ($width > 512 || $height > 512) {
+                    $cropSize = 512;
+                    $x = ($width - $cropSize) / 2;
+                    $y = ($height - $cropSize) / 2;
+
+                    $cropped = imagecrop($src, ['x' => $x, 'y' => $y, 'width' => $cropSize, 'height' => $cropSize]);
+                } else {
+                    $cropped = $src;
+                }
+
+                ob_start();
+                imagepng($cropped);
+                $imageData = ob_get_clean();
+
+                $filename = 'avatars/' . $request->user()->id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.png';
+                Storage::disk('public')->put($filename, $imageData);
+
+                imagedestroy($src);
+                if ($cropped !== $src) {
+                    imagedestroy($cropped);
+                }
+
+                $request->user()->avatar = $filename;
+            } else {
+                // fallback: simpan original jika format tidak didukung
+                $filename = 'avatars/' . $request->user()->id . '_' . time() . '_' . bin2hex(random_bytes(4)) . '.' . $file->getClientOriginalExtension();
+                Storage::disk('public')->putFileAs('avatars', $file, basename($filename));
+                $request->user()->avatar = $filename;
+            }
+        }
+
         $request->user()->save();
 
         return to_route('profile.edit');
     }
+
 
     /**
      * Delete the user's account.

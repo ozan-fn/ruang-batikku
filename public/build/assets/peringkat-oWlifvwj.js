@@ -1,0 +1,1 @@
+import{j as t}from"./app-CkdAkt44.js";import{G as r}from"./guest-layout-BmCAePYe.js";/* empty css            */import"./proxy-a-HCbam4.js";function m(){return t.jsx(r,{children:"peringkat"})}export{m as default};

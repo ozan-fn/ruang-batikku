@@ -3,6 +3,7 @@ import { motion } from 'motion/react';
 import dash_image from '@/assets/dash_image.png';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import GuestLayout from '@/layouts/guest-layout';
+import { Link } from '@inertiajs/react';
 
 // Placeholder untuk komponen yang tidak tersedia di lingkungan ini
 // const GuestLayout = ({ children }) => <div className="min-h-screen overflow-x-hidden bg-gray-100">{children}</div>;
@@ -13,7 +14,7 @@ export default function Welcome() {
     return (
         <GuestLayout>
             {/* Kontainer utama dengan padding dan margin responsif */}
-            <div className="mx-auto mt-8 w-full max-w-7xl px-4 pb-24 sm:px-6 md:mt-12 lg:px-8">
+            <div className="mx-auto mt-22 w-full max-w-7xl px-4 pb-24 sm:px-6 md:mt-16 lg:mt-18 lg:px-8">
                 {/* - Tata letak fleksibel: 
                   - Tumpukan vertikal (flex-col) di layar kecil.
                   - Berdampingan (lg:flex-row) di layar besar.
@@ -91,15 +92,17 @@ export default function Welcome() {
                             Lestarikan keindahan dan keberagaman batik Indonesia
                         </motion.div>
 
-                        <motion.div
-                            animate={{ opacity: [0, 1], scale: [0.8, 1] }}
-                            transition={{ delay: 1.6, type: 'spring' }}
-                            className="inline-flex flex-col items-start justify-start gap-2.5 pt-3.5"
-                        >
-                            <div className="inline-flex cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-lg bg-[#955932] px-6 py-3.5 shadow-[0px_0px_8px_0px_rgba(182,99,47,1.00)] transition-colors hover:bg-[#7d4a27]">
-                                <div className="justify-start text-base font-bold text-gray-50">Mulai Bermain</div>
-                            </div>
-                        </motion.div>
+                        <Link href={route('ruang-batik')}>
+                            <motion.div
+                                animate={{ opacity: [0, 1], scale: [0.8, 1] }}
+                                transition={{ delay: 1.6, type: 'spring' }}
+                                className="inline-flex flex-col items-start justify-start gap-2.5 pt-3.5"
+                            >
+                                <div className="inline-flex cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-lg bg-[#955932] px-6 py-3.5 shadow-[0px_0px_8px_0px_rgba(182,99,47,1.00)] transition-colors hover:bg-[#7d4a27]">
+                                    <div className="justify-start text-base font-bold text-gray-50">Mulai Bermain</div>
+                                </div>
+                            </motion.div>
+                        </Link>
                     </div>
 
                     {/* --- Kolom Gambar (Kanan) --- */}
