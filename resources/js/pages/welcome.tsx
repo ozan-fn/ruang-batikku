@@ -1,38 +1,46 @@
-import { motion } from 'motion/react';
+import { motion } from 'framer-motion'; // Mengimpor library 'framer-motion' untuk animasi
 // Pastikan Anda memiliki komponen-komponen ini di proyek Anda
 import dash_image from '@/assets/dash_image.png';
 import { TextGenerateEffect } from '@/components/ui/text-generate-effect';
 import GuestLayout from '@/layouts/guest-layout';
-import { Link } from '@inertiajs/react';
+import { Head, Link } from '@inertiajs/react';
 
-// Placeholder untuk komponen yang tidak tersedia di lingkungan ini
-// const GuestLayout = ({ children }) => <div className="min-h-screen overflow-x-hidden bg-gray-100">{children}</div>;
-// const TextGenerateEffect = ({ words, className }) => <h1 className={className}>{words}</h1>;
-// const dash_image = 'https://placehold.co/550x550/e2e8f0/955932?text=Gambar+Batik';
-
+// Komponen utama untuk halaman "Welcome" atau beranda.
 export default function Welcome() {
     return (
+        // Menggunakan 'GuestLayout' sebagai pembungkus utama halaman,
+        // yang biasanya menangani header, footer, dan latar belakang.
         <GuestLayout>
-            {/* Kontainer utama dengan padding dan margin responsif */}
+            <Head title="Selamat Datang" />
+            {/* Kontainer utama dengan padding dan margin responsif.
+                - mx-auto: Memusatkan kontainer.
+                - max-w-7xl: Membatasi lebar maksimum di layar besar.
+                - px-4 sm:px-6 lg:px-8: Padding horizontal yang beradaptasi dengan ukuran layar.
+                - mt-*: Margin atas yang beradaptasi.
+            */}
             <div className="mx-auto mt-22 w-full max-w-7xl px-4 pb-24 sm:px-6 md:mt-16 lg:mt-18 lg:px-8">
-                {/* - Tata letak fleksibel: 
-                  - Tumpukan vertikal (flex-col) di layar kecil.
-                  - Berdampingan (lg:flex-row) di layar besar.
-                  - Pusatkan item di seluler.
+                {/*
+                  - Tata letak fleksibel (flex) untuk konten utama.
+                  - Awalnya tumpukan vertikal (flex-col) di layar kecil.
+                  - Berubah menjadi berdampingan (lg:flex-row) di layar besar (lg).
+                  - justify-between: Memberi jarak antara kolom teks dan gambar.
                 */}
                 <div className="relative flex flex-col items-center justify-between pt-10 lg:flex-row lg:items-center">
-                    {/* --- Kolom Teks (Kiri) --- */}
-                    {/* - Mengatur urutan: Teks muncul setelah gambar di seluler (order-2), tapi pertama di layar besar (lg:order-1).
-                      - Pusatkan semua item teks di seluler (items-center), dan ratakan kiri di layar besar (lg:items-start).
-                      - Beri jarak atas di seluler.
+                    {/* --- Kolom Teks (Kiri di layar besar) --- */}
+                    {/*
+                      - order-2 lg:order-1: Di layar kecil, kolom ini ada di bawah gambar. Di layar besar, ia pindah ke urutan pertama (kiri).
+                      - text-center lg:text-left: Teks rata tengah di layar kecil, dan rata kiri di layar besar.
+                      - gap-6: Memberi jarak antar elemen di dalamnya.
                     */}
                     <div className="order-2 mt-10 flex flex-col items-center justify-center gap-6 text-center lg:order-1 lg:mt-0 lg:items-start lg:text-left">
+                        {/* Tagline kecil dengan animasi masuk dari kiri */}
                         <motion.div
                             animate={{ x: [-12, 0], opacity: [0, 1] }}
                             transition={{ type: 'spring' }}
                             className="inline-flex w-fit items-center justify-start gap-2.5 overflow-hidden rounded-full bg-white px-3 py-2.5"
                         >
                             <div className="relative">
+                                {/* Ikon titik berwarna */}
                                 <svg width="22" height="22" viewBox="0 0 22 22" fill="none" xmlns="http://www.w3.org/2000/svg">
                                     <g filter="url(#filter0_d_82_277)">
                                         <rect x="6" y="6" width="10" height="10" rx="5" fill="#955932" />
@@ -64,69 +72,77 @@ export default function Welcome() {
                                     </defs>
                                 </svg>
                             </div>
-                            <div className="justify-start text-sm font-bold text-black">Ramaikan selalu batik indonesia.</div>
+                            <div className="justify-start text-sm font-bold text-black">Jelajahi Warisan Budaya Indonesia</div>
                         </motion.div>
 
+                        {/* Judul utama */}
                         <div className="inline-flex flex-col items-center justify-start lg:items-start">
+                            {/* Komponen untuk animasi teks ketik */}
                             <TextGenerateEffect
-                                words="SELAMAT DATANG DI"
-                                /* Ukuran teks responsif */
+                                words="WARISAN DALAM GORESAN"
+                                // Ukuran teks responsif: text-4xl di layar kecil, md:text-5xl di layar medium ke atas.
                                 className="justify-start text-4xl font-bold text-gray-900 [text-shadow:_0px_0px_4px_rgb(113_63_30_/_1.00)] md:text-5xl"
                             />
+                            {/* Nama aplikasi dengan animasi masuk dari bawah */}
                             <motion.div
                                 animate={{ y: [12, 0], opacity: [0, 1] }}
                                 transition={{ delay: 1, type: 'spring' }}
-                                /* Ukuran teks responsif */
                                 className="justify-start text-4xl font-bold text-[#b6632f] md:text-5xl"
                             >
                                 RUANG BATIKKU
                             </motion.div>
                         </div>
 
+                        {/* Deskripsi singkat dengan animasi masuk dari kanan */}
                         <motion.div
                             animate={{ x: [12, 0], opacity: [0, 1] }}
                             transition={{ type: 'spring', delay: 1.3 }}
-                            /* Lebar responsif: w-full di seluler, max-w-lg di desktop */
+                            // Lebar responsif: full-width di layar kecil, max-w-lg di layar besar.
                             className="w-full max-w-lg justify-start text-2xl font-normal text-gray-900 md:text-[32px]"
                         >
-                            Lestarikan keindahan dan keberagaman batik Indonesia
+                            Platform interaktif untuk belajar, berkarya, dan melestarikan keindahan motif batik nusantara.
                         </motion.div>
 
-                        <Link href={route('ruang-batik')}>
+                        {/* Tombol Aksi Utama (Call to Action) */}
+                        {/* Menggunakan <Link> dari Inertia untuk navigasi SPA ke halaman ruang batik. */}
+                        <Link href={route('ruang-batik.index')}>
                             <motion.div
                                 animate={{ opacity: [0, 1], scale: [0.8, 1] }}
                                 transition={{ delay: 1.6, type: 'spring' }}
                                 className="inline-flex flex-col items-start justify-start gap-2.5 pt-3.5"
                             >
                                 <div className="inline-flex cursor-pointer items-center justify-center gap-2.5 overflow-hidden rounded-lg bg-[#955932] px-6 py-3.5 shadow-[0px_0px_8px_0px_rgba(182,99,47,1.00)] transition-colors hover:bg-[#7d4a27]">
-                                    <div className="justify-start text-base font-bold text-gray-50">Mulai Bermain</div>
+                                    <div className="justify-start text-base font-bold text-gray-50">Mulai Berkarya</div>
                                 </div>
                             </motion.div>
                         </Link>
                     </div>
 
-                    {/* --- Kolom Gambar (Kanan) --- */}
-                    {/* - Mengatur urutan: Gambar muncul pertama di seluler (order-1), tapi kedua di layar besar (lg:order-2).
-                      - Lebar gambar disesuaikan agar tidak terlalu besar di seluler.
+                    {/* --- Kolom Gambar (Kanan di layar besar) --- */}
+                    {/*
+                      - order-1 lg:order-2: Di layar kecil, gambar ini ada di atas teks. Di layar besar, ia pindah ke urutan kedua (kanan).
+                      - w-full max-w-md: Lebarnya penuh di kontainer kecil, tapi dibatasi maksimumnya.
+                      - lg:w-1/2: Di layar besar, lebarnya menjadi 50% dari kontainer.
                     */}
                     <div className="relative order-1 -mt-26 -mb-13 flex w-full max-w-md justify-center lg:order-2 lg:-my-4 lg:w-1/2 lg:max-w-none lg:justify-end">
+                        {/* Gambar utama dengan animasi masuk dari kanan */}
                         <motion.img
                             animate={{ x: [12, 0], opacity: [0, 1] }}
                             transition={{ duration: 1.6, delay: 0.6, type: 'spring' }}
                             src={dash_image}
                             alt="Ilustrasi Batik"
-                            /* Gambar dibuat agar tidak melebihi kontainernya */
+                            // object-contain memastikan seluruh gambar terlihat tanpa terpotong.
                             className="h-auto w-full object-contain"
                         />
 
                         {/* Elemen Bintang Pertama (Kanan Atas) */}
-                        {/* Disembunyikan di layar kecil (hidden), muncul di layar besar (lg:block) */}
+                        {/* hidden lg:block: Elemen ini hanya akan terlihat di layar besar. */}
                         <motion.div
                             animate={{ y: [20, 0] }}
                             transition={{ delay: 1.3, type: 'spring', duration: 0.7 }}
                             className="absolute top-10 right-0 hidden h-[85.27px] w-[71.54px] md:right-10 lg:right-28 lg:block"
                         >
-                            {/* Konten SVG Bintang tidak diubah */}
+                            {/* SVG Bintang Dekoratif dengan animasi */}
                             <div className="absolute top-0 left-0 h-[85.27px] w-[71.54px]">
                                 <div className="absolute top-[54.77px] left-0">
                                     <svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -187,13 +203,12 @@ export default function Welcome() {
                         </motion.div>
 
                         {/* Elemen Bintang Kedua (Kiri Bawah) */}
-                        {/* Disembunyikan di layar kecil (hidden), muncul di layar besar (lg:block) */}
                         <motion.div
                             animate={{ y: [20, 0] }}
                             transition={{ delay: 1.3, type: 'spring', duration: 0.7 }}
                             className="absolute bottom-16 -left-10 hidden h-[85.27px] w-[71.54px] lg:block"
                         >
-                            {/* Konten SVG Bintang tidak diubah */}
+                            {/* SVG Bintang Dekoratif dengan animasi */}
                             <div className="absolute top-0 left-0 h-[85.27px] w-[71.54px]">
                                 <div className="absolute top-[54.77px] left-0">
                                     <svg width="19" height="20" viewBox="0 0 19 20" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -254,8 +269,7 @@ export default function Welcome() {
                         </motion.div>
                     </div>
 
-                    {/* SVG Latar Belakang */}
-                    {/* Disembunyikan di layar kecil (hidden), muncul di layar besar (lg:block) */}
+                    {/* SVG Latar Belakang Dekoratif */}
                     <motion.svg
                         className="absolute -bottom-28 left-56 hidden lg:block"
                         width="228"
@@ -265,6 +279,7 @@ export default function Welcome() {
                         xmlns="http://www.w3.org/2000/svg"
                     >
                         <mask id="mask0_83_281" style={{ maskType: 'luminance' }} maskUnits="userSpaceOnUse" x="0" y="0" width="228" height="199">
+                            {/* Animasi garis terluar dari SVG */}
                             <motion.path
                                 initial={{ pathLength: 0 }}
                                 animate={{ pathLength: 1 }}
@@ -274,6 +289,7 @@ export default function Welcome() {
                             />
                         </mask>
                         <g mask="url(#mask0_83_281)">
+                            {/* Animasi pengisian warna pada SVG */}
                             <motion.path
                                 initial={{ pathLength: 0, fill: 'none' }}
                                 animate={{ pathLength: 1, fill: '#955932' }}

@@ -2,11 +2,12 @@ import Heading from '@/components/heading';
 import { Button } from '@/components/ui/button';
 import { Separator } from '@/components/ui/separator';
 import { cn } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link } from '@inertiajs/react';
+import { type NavItem, type SharedData } from '@/types';
+import { Link, usePage } from '@inertiajs/react'; // <-- 1. Impor usePage
 import { type PropsWithChildren } from 'react';
 
-const sidebarNavItems: NavItem[] = [
+// Daftar semua item navigasi yang mungkin ada
+const allSidebarNavItems: NavItem[] = [
     {
         title: 'Profile',
         href: '/settings/profile',
@@ -17,15 +18,38 @@ const sidebarNavItems: NavItem[] = [
         href: '/settings/password',
         icon: null,
     },
-    // {
-    //     title: 'Appearance',
-    //     href: '/settings/appearance',
-    //     icon: null,
-    // },
+    {
+        title: 'Motif Batik',
+        href: '/settings/motif-batik',
+        icon: null,
+        // Tandai item ini sebagai khusus admin
+        adminOnly: true,
+    },
+    {
+        title: 'Galeri Batik',
+        href: '/settings/galeri-batik',
+        icon: null,
+        // Tandai item ini sebagai khusus admin
+        adminOnly: true,
+    },
 ];
 
 export default function SettingsLayout({ children }: PropsWithChildren) {
-    // When server-side rendering, we only render the layout on the client...
+    // 2. Ambil data pengguna dari Inertia
+    const { auth } = usePage<SharedData>().props;
+    const user = auth.user;
+
+    // 3. Filter item navigasi berdasarkan peran (role) pengguna
+    const sidebarNavItems = allSidebarNavItems.filter((item) => {
+        // Jika item ditandai sebagai 'adminOnly', periksa apakah peran pengguna adalah 'admin'
+        if (item.adminOnly) {
+            return user && user.role === 'admin';
+        }
+        // Jika tidak ditandai, tampilkan untuk semua pengguna
+        return true;
+    });
+
+    // Ketika server-side rendering, kita hanya render layout di sisi klien...
     if (typeof window === 'undefined') {
         return null;
     }
@@ -39,6 +63,7 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
             <div className="flex flex-col space-y-8 lg:flex-row lg:space-y-0 lg:space-x-12">
                 <aside className="w-full max-w-xl lg:w-48">
                     <nav className="flex flex-col space-y-1 space-x-0">
+                        {/* 4. Render item navigasi yang sudah difilter */}
                         {sidebarNavItems.map((item, index) => (
                             <Button
                                 key={`${item.href}-${index}`}
@@ -59,8 +84,8 @@ export default function SettingsLayout({ children }: PropsWithChildren) {
 
                 <Separator className="my-6 md:hidden" />
 
-                <div className="flex-1 md:max-w-2xl">
-                    <section className="max-w-xl space-y-12">{children}</section>
+                <div className="w-full">
+                    <section className="w-full space-y-12">{children}</section>
                 </div>
             </div>
         </div>

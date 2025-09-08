@@ -45,4 +45,9 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function batikHistories()
+    {
+        return $this->hasMany(BatikHistory::class);
+    }
 }

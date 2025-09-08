@@ -13,7 +13,7 @@ let navbar = [
     },
     {
         name: 'Ruang Batik',
-        href: 'ruang-batik',
+        href: 'ruang-batik.index',
     },
     {
         name: 'Galeri Batik',
@@ -23,10 +23,10 @@ let navbar = [
         name: 'Peringkat',
         href: 'peringkat',
     },
-    {
-        name: 'Komunitas',
-        href: 'komunitas',
-    },
+    // {
+    //     name: 'Komunitas',
+    //     href: 'komunitas',
+    // },
 ];
 
 export default function Header() {
@@ -72,7 +72,7 @@ export default function Header() {
                                     <motion.div
                                         layoutId="navbar"
                                         transition={{ type: 'spring', duration: 0.7 }}
-                                        className="absolute -bottom-1 left-0 h-1 w-full rounded-md bg-white"
+                                        className="absolute -bottom-1 left-0 h-1 w-14 rounded-md bg-white"
                                     ></motion.div>
                                 )}
                             </Link>

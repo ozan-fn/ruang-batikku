@@ -19,7 +19,9 @@ export interface NavItem {
     title: string;
     href: string;
     icon?: LucideIcon | null;
+
     isActive?: boolean;
+    adminOnly?: boolean;
 }
 
 export interface SharedData {

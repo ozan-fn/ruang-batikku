@@ -103,7 +103,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                             MASUK
                         </Button>
 
-                        <div className="inline-flex items-center justify-center gap-2 py-2">
+                        {/* <div className="inline-flex items-center justify-center gap-2 py-2">
                             <div className="relative h-1 flex-1 rounded-lg bg-[#532f16]/40" />
                             <div className="justify-start text-xs font-bold text-[#532f16]/40">atau masuk dengan</div>
                             <div className="relative h-1 flex-1 rounded-lg bg-[#532f16]/40" />
@@ -131,7 +131,7 @@ export default function Login({ status, canResetPassword }: LoginProps) {
                                 </svg>
                             </div>
                             <div className="justify-start font-['Anek_Latin'] text-sm font-bold text-black">Google</div>
-                        </div>
+                        </div> */}
                     </div>
 
                     <div className="justify-start">
